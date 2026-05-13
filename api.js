@@ -66,8 +66,9 @@ class CernionAPI {
     } catch (e) { e.isCORS = e.message.indexOf('Failed') >= 0; throw e; }
   }
   async getScenarios() {
-    try { return await this.get('/finance/mieterstrom/scenarios'); }
-    catch (e) { return { scenarios: DEMO_SCENARIOS, results: DEMO_ERGEBNISSE }; }
+    // Endpoint /finance/mieterstrom/scenarios does not exist in Cernion API.
+    // This tool computes economics client-side; returning demo data only.
+    return { scenarios: DEMO_SCENARIOS, results: DEMO_ERGEBNISSE };
   }
 }
 

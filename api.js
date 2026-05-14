@@ -38,39 +38,66 @@ function berechneWirtschaftlichkeit(s) {
 
 var DEMO_ERGEBNISSE = DEMO_SCENARIOS.map(berechneWirtschaftlichkeit);
 
-class CernionAPI {
-  constructor() {
-    this.config = this.loadConfig();
-    this.config.baseUrl = (this.config.baseUrl || 'https://api.cernion.de/').replace(/\/api\/$/, '').replace(/\/$/, '') + '/';
-  }
-  loadConfig() {
-    try {
-      var raw = localStorage.getItem(CERNION_CONFIG_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
-    return { baseUrl: 'https://api.cernion.de/', tenantId: 'agentic-hackathon', token: '' };
-  }
-  saveConfig(cfg) {
-    for (var k in cfg) this.config[k] = cfg[k];
-    localStorage.setItem(CERNION_CONFIG_KEY, JSON.stringify(this.config));
-  }
-  get headers() {
-    var h = { 'Content-Type': 'application/json', 'x-tenant-id': this.config.tenantId };
-    if (this.config.token) h['Authorization'] = 'Bearer ' + this.config.token;
-    return h;
-  }
-  async get(endpoint) {
-    try {
-      var res = await fetch(this.config.baseUrl + endpoint, { headers: this.headers });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    } catch (e) { e.isCORS = e.message.indexOf('Failed') >= 0; throw e; }
-  }
-  async getScenarios() {
-    // Endpoint /finance/mieterstrom/scenarios does not exist in Cernion API.
-    // This tool computes economics client-side; returning demo data only.
-    return { scenarios: DEMO_SCENARIOS, results: DEMO_ERGEBNISSE };
-  }
+function CernionAPI() {
+  this.config = this.loadConfig();
+  this.config.baseUrl = (this.config.baseUrl || 'https://api.cernion.de/').replace(/\/api\/\s*$/, '/').replace(/\/+$/, '') + '/';
 }
+
+CernionAPI.prototype.loadConfig = function() {
+  try {
+    var raw = localStorage.getItem(CERNION_CONFIG_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { baseUrl: 'https://api.cernion.de/', tenantId: 'agentic-hackathon', token: '' };
+};
+
+CernionAPI.prototype.saveConfig = function(cfg) {
+  for (var k in cfg) this.config[k] = cfg[k];
+  localStorage.setItem(CERNION_CONFIG_KEY, JSON.stringify(this.config));
+};
+
+CernionAPI.prototype.getHeaders = function() {
+  var h = { 'Content-Type': 'application/json', 'x-tenant-id': this.config.tenantId };
+  if (this.config.token) h['Authorization'] = 'Bearer ' + this.config.token;
+  return h;
+};
+
+CernionAPI.prototype.get = function(endpoint) {
+  var self = this;
+  return fetch(this.config.baseUrl + endpoint, { headers: this.getHeaders() }).then(function(res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }).catch(function(e) {
+    e.isCORS = e.message.indexOf('Failed') >= 0;
+    throw e;
+  });
+};
+
+CernionAPI.prototype.getScenarios = function() {
+  var self = this;
+  return Promise.resolve({ scenarios: DEMO_SCENARIOS, results: DEMO_ERGEBNISSE });
+};
+
+CernionAPI.prototype.listMelos = function() {
+  var self = this;
+  return this.get('api/edm/melos').then(function(result) {
+    if (!result.data || result.data.length === 0) {
+      return { data: [] };
+    }
+    return result;
+  }).catch(function(e) {
+    console.warn('EDM MeLos API Fehler, Demo-Modus:', e.message);
+    return { data: [] };
+  });
+};
+
+CernionAPI.prototype.testConnection = function() {
+  var self = this;
+  return this.get('api/openapi.json').then(function() {
+    return { ok: true };
+  }).catch(function(e) {
+    return { ok: false, error: e.message };
+  });
+};
 
 var api = new CernionAPI();

@@ -21,9 +21,15 @@
 | **Amortisationsdauer** | Vergleich der 3 Szenarien |
 | **§42c Hinweis** | Regulatorischer Kontext für kommunale Entscheidungsträger |
 
-## 🏗 Technischer Stack
+## 3. Technischer Stack
 
-HTML5 + CSS3 + ES6 + Pico.css + Chart.js + Cernion a²mdm API
+| Ebene | Technologie | Begründung |
+|-------|------------|-----------|
+| **Frontend** | Vanilla HTML5 + CSS3 + ES5 | Zero-Build, funktioniert auf jedem Browser ohne Transpiler |
+| **Styling** | Pico.css via CDN | Dark-Mode, professionell, kein Build |
+| **Charts** | Chart.js via CDN | Industriestandard, keine Toolchain |
+| **Backend** | Cernion a²mdm API | Kein eigenes Backend, Tenant-isolierte Daten |
+| **Hosting** | GitHub Pages | Kostenlos, Fork = eigene Demo |
 
 ## 🚀 Schnellstart
 
@@ -44,6 +50,38 @@ HTML5 + CSS3 + ES6 + Pico.css + Chart.js + Cernion a²mdm API
 | Basis (30 kWp) | 30 kWp | 45.000 € | ~8.500 € | ~12 Jahre | 🟡 knapp |
 | Erweitert (60 kWp) | 60 kWp | 85.000 € | ~42.000 € | ~9 Jahre | 🟢 rentabel |
 | Premium (100 kWp + Speicher) | 100 kWp | 165.000 € | ~71.000 € | ~10 Jahre | 🟢 rentabel |
+
+## 7. Architektur
+
+```
+┌──────────────────────────────────────────┐
+│  Browser (GitHub Pages)                  │
+│  ┌──────────┐ ┌──────────┐ ┌───────────┐  │
+│  │index.html│ │ app.js   │ │ api.js    │  │
+│  │ (UI)     │ │ (Logic)  │ │ (Client)  │  │
+│  └────┬─────┘ └────┬─────┘ └─────┬─────┘  │
+│       └─────────────┴─────────────┘        │
+│              │ HTTPS                       │
+└──────────────┼─────────────────────────────┘
+               │
+       ┌───────▼────────┐
+       │  Cernion API   │
+       │  api.cernion.de│
+       │  ┌──────────┐  │
+       │  │ Tenant:  │  │
+       │  │ agentic- │  │
+       │  │hackathon │  │
+       │  └──────────┘  │
+       │  ┌──────────┐  │
+       │  │ EDM      │  │
+       │  │ (MeLos)  │  │
+       │  └──────────┘  │
+       └────────────────┘
+```
+
+Die Wirtschaftlichkeitsberechnung erfolgt client-seitig in `api.js` mit realistischen Finanzierungsformeln (Annuität, Kapitalwert, Amortisation). Die EDM-Integration ermöglicht, bei bestehender Tenant-Anbindung reale Mieterstrom-MeLos als Grundlage für die Szenarien zu nutzen.
+
+---
 
 ## 📄 Lizenz
 
